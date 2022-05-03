@@ -1,0 +1,4 @@
+version: '2.4'
+services:
+  elasticsearch:
+    image: "elasticsearch:7.17.3"
