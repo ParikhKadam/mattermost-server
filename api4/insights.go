@@ -155,10 +155,10 @@ func getTopChannelsForTeamSince(c *Context, w http.ResponseWriter, r *http.Reque
 
 	js, jsonErr := json.Marshal(struct {
 		*model.TopChannelList
-		PostCountsByDay []*model.DailyPostCount `json:"daily_post_counts"`
+		PostCountsByDay []*model.DailyPostCountViewModel `json:"daily_post_counts"`
 	}{
 		topChannels,
-		postCountsByDay,
+		model.ToDailyPostCountViewModel(postCountsByDay),
 	})
 	if jsonErr != nil {
 		c.Err = model.NewAppError("getTopChannelsForTeamSince", "api.marshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)

@@ -4,7 +4,6 @@
 package model
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 )
@@ -65,15 +64,32 @@ type DailyPostCount struct {
 	PostCount int       `db:"postcount" json:"post_count"`
 }
 
-func (d *DailyPostCount) MarshalJSON() ([]byte, error) {
-	type Alias DailyPostCount
-	return json.Marshal(&struct {
-		Date string `json:"day"`
-		*Alias
-	}{
-		Date:  d.Date.Format("2006-01-02"),
-		Alias: (*Alias)(d),
-	})
+func (d *DailyPostCount) iso8601Day() string {
+	return d.Date.Format("2006-01-02")
+}
+
+type DailyPostCountViewModel struct {
+	Day      string            `json:"day"`
+	Channels []*DailyPostCount `json:"channels"`
+}
+
+func ToDailyPostCountViewModel(dpc []*DailyPostCount) []*DailyPostCountViewModel {
+	intermediary := map[string][]*DailyPostCount{}
+	for _, item := range dpc {
+		isoDay := item.iso8601Day()
+		if val, ok := intermediary[isoDay]; ok {
+			intermediary[isoDay] = append(val, item)
+		} else {
+			intermediary[isoDay] = []*DailyPostCount{item}
+		}
+	}
+
+	vm := []*DailyPostCountViewModel{}
+	for key, val := range intermediary {
+		vm = append(vm, &DailyPostCountViewModel{Day: key, Channels: val})
+	}
+
+	return vm
 }
 
 // GetStartUnixMilliForTimeRange gets the unix start time in milliseconds from the given time range.
